@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Interativa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #2c2c2c;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        h1 {
+            text-align: center;
+            color: #9b59b6;
+            margin-bottom: 20px;
+        }
+        .agenda-item {
+            background-color: #3e3e3e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            opacity: 1;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .agenda-item p {
+            margin: 0;
+        }
+        .hora {
+            font-weight: bold;
+            color: #fff;
+        }
+        .descricao {
+            color: #b3b3b3;
+        }
+        .agenda-item.completed {
+            text-decoration: line-through;
+            background-color: #4d4d4d;
+            opacity: 0.7;
+        }
+        .agenda-item:hover {
+            transform: scale(1.05);
+        }
+        .adicionar-evento {
+            margin-top: 30px;
+            background-color: #3e3e3e;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #9b59b6;
+            background-color: #4d4d4d;
+            color: #fff;
+        }
+        button {
+            background-color: #9b59b6;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #8e44ad;
+        }
+        .btn-remove {
+            background-color: #e74c3c;
+            margin-left: 15px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-remove:hover {
+            background-color: #c0392b;
+        }
+        .completed-btn {
+            background-color: #2ecc71;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .completed-btn:hover {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Agenda do Dia</h1>
+
+        <!-- Horários Fixo de Rotina -->
+        <div class="agenda-item">
+            <p><span class="hora">07:30</span> - Entrada na Escola</p>
+            <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+            <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+        </div>
+        <div class="agenda-item">
+            <p><span class="hora">12:10</span> - Saída da Escola</p>
+            <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+            <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+        </div>
+        <div class="agenda-item">
+            <p><span class="hora">13:00</span> - Chegada em Casa</p>
+            <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+            <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+        </div>
+        <div class="agenda-item">
+            <p><span class="hora">13:14</span> - Almoço</p>
+            <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+            <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+        </div>
+        <div class="agenda-item">
+            <p><span class="hora">13:20</span> - Lavar a Louça</p>
+            <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+            <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+        </div>
+        <div class="agenda-item">
+            <p><span class="hora">15:00</span> - Descanso</p>
+            <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+            <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+        </div>
+
+        <!-- Fazer Jantar nas Segundas e Terças -->
+        <div class="agenda-item">
+            <p><span class="hora">14:00</span> - Fazer Jantar (Segunda-feira)</p>
+            <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+            <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+        </div>
+        <div class="agenda-item">
+            <p><span class="hora">14:00</span> - Fazer Jantar (Terça-feira)</p>
+            <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+            <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+        </div>
+
+        <!-- Evento Quinta-feira: Postar Vídeo no YouTube -->
+        <div class="agenda-item">
+            <p><span class="hora">10:00</span> - Postar Vídeo no YouTube (Quinta-feira)</p>
+            <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+            <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+        </div>
+
+        <!-- Formulário para adicionar novos eventos -->
+        <div class="adicionar-evento">
+            <h3>Adicionar Novo Evento</h3>
+            <input type="text" id="titulo" placeholder="Título do evento">
+            <textarea id="descricao" placeholder="Descrição do evento" rows="4"></textarea>
+            <button onclick="adicionarEvento()">Adicionar Evento</button>
+        </div>
+    </div>
+
+    <script>
+        // Adicionar novo evento
+        function adicionarEvento() {
+            const titulo = document.getElementById('titulo').value;
+            const descricao = document.getElementById('descricao').value;
+
+            if (titulo && descricao) {
+                const novoEvento = document.createElement('div');
+                novoEvento.classList.add('agenda-item');
+                novoEvento.innerHTML = `
+                    <p><span class="hora">Novo Horário</span> - ${titulo}: ${descricao}</p>
+                    <button class="completed-btn" onclick="toggleCompleted(this)">Concluir</button>
+                    <button class="btn-remove" onclick="removeEvento(this)">Remover</button>
+                `;
+                document.querySelector('.container').insertBefore(novoEvento, document.querySelector('.adicionar-evento'));
+                document.getElementById('titulo').value = '';
+                document.getElementById('descricao').value = '';
+            } else {
+                alert('Por favor, preencha todos os campos!');
+            }
+        }
+
+        // Marcar evento como concluído
+        function toggleCompleted(button) {
+            const evento = button.parentElement;
+            evento.classList.toggle('completed');
+        }
+
+        // Remover evento
+        function removeEvento(button) {
+            if (confirm('Tem certeza que deseja remover este evento?')) {
+                const evento = button.parentElement;
+                evento.style.opacity = '0';
+                evento.style.transform = 'scale(0)';
+                setTimeout(() => {
+                    evento.remove();
+                }, 300); // Tempo de transição
+            }
+        }
+    </script>
+
+</body>
+</html>
