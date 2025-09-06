@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agenda Interativa</title>
 <style>
 :root {
   --bg: #f3e8ff;
   --panel: #e9d5ff;
-  --muted: #7c3aed;
   --text: #4c1d95;
   --accent: #a78bfa;
   --ok: #6b21a8;
@@ -16,34 +15,34 @@
   --card: #ede9fe;
   --radius: 18px;
 }
-body { margin:0; font-family: 'Comic Sans MS', cursive, sans-serif; background: var(--bg); color: var(--text); }
-.wrap { max-width: 480px; margin:24px auto; padding:0 12px; }
+body { font-family:'Comic Sans MS', cursive, sans-serif; background: var(--bg); margin:0; color: var(--text); }
+.wrap { max-width:480px; margin:24px auto; padding:0 12px; }
 header { display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:18px; }
-h1 { font-size:24px; margin:0; text-align:center; }
-.points { font-size:16px; color: var(--accent); font-weight:bold; }
-.btn { cursor:pointer; border:none; padding:6px 10px; border-radius:12px; font-weight:bold; transition: transform .2s; }
-.btn.ok { background:var(--accent); color:#fff; }
-.btn.danger { background:#9333ea; color:#fff; }
+h1 { margin:0; font-size:24px; text-align:center; }
+.points { font-weight:bold; font-size:16px; color: var(--accent); }
+.btn { border:none; padding:6px 10px; border-radius:12px; cursor:pointer; font-weight:bold; }
+.btn.ok { background: var(--accent); color:#fff; }
+.btn.danger { background: var(--danger); color:#fff; }
 .btn.small { font-size:13px; }
-.panel { background: var(--panel); border-radius: var(--radius); padding:16px; margin-bottom: 20px; box-shadow: 2px 2px 12px rgba(0,0,0,0.2); }
-ul.tasks { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px }
-.task { display:flex; flex-direction:column; background:var(--card); padding:10px; border-radius:12px; }
-.task.done { opacity:.6; text-decoration: line-through; }
-.time { background:#e0c7ff; padding:4px 8px; border-radius:6px; margin-right:8px; font-size:14px; display:inline-block; }
-.extra { color: #a78bfa; margin-left:6px; font-weight:bold; }
-.star { color: gold; margin-left:4px; font-size:16px; }
-task-buttons { margin-top:6px; display:flex; gap:6px; }
-day-container { display:flex; gap:4px; margin-top:6px; }
-.day { width:24px; height:24px; border-radius:50%; background:#c4b5fd; color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-bottom:4px; }
-.day.done { background:#6b21a8; }
-table { width:100%; border-collapse: separate; border-spacing: 0; border-radius:12px; overflow:hidden; margin-top:10px; font-size:14px; }
-th, td { border:none; padding:8px; text-align:left; }
-th { background:#c4b5fd; color:#4c1d95; font-weight:bold }
+.panel { background: var(--panel); border-radius: var(--radius); padding:16px; margin-bottom:20px; box-shadow:2px2px12px rgba(0,0,0,0.2); }
+ul.tasks { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+.task { display:flex; flex-direction:column; background: var(--card); padding:10px; border-radius:12px; transition: all 0.3s ease; }
+.task.done { opacity:0.6; text-decoration:line-through; transform: scale(1.02); }
+.time { display:inline-block; background:#e0c7ff; padding:4px 8px; border-radius:6px; margin-right:8px; font-size:14px; }
+.extra { font-weight:bold; color:#a78bfa; margin-left:6px; }
+.day-container { display:flex; gap:4px; margin-top:6px; justify-content:center; }
+.day { width:24px; height:24px; border-radius:50%; background:#c4b5fd; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; transition: all 0.3s ease; }
+.day.done { background:#6b21a8; transform: scale(1.2); }
+.progress-bar { display:flex; gap:4px; margin-top:6px; justify-content:center; }
+.progress-bar div { width:32px; height:32px; border-radius:6px; background:#c4b5fd; transition: all 0.3s ease; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; }
+.progress-bar div.done { background:#6b21a8; transform: scale(1.1); }
+table { width:100%; border-collapse: separate; border-spacing:0; border-radius:12px; overflow:hidden; margin-top:10px; font-size:14px; }
+th, td { padding:8px; text-align:left; border:none; }
+th { background:#c4b5fd; color: var(--text); font-weight:bold; }
 tr:nth-child(even) td { background:#e9d5ff; }
 tr:nth-child(odd) td { background:#ede9fe; }
-.footer-note { text-align:center; margin-top:20px; color: var(--muted); font-weight:bold; font-size:14px; }
-#pointMsg { display:none; background:#a78bfa; color:#fff; padding:10px; margin-top:10px; text-align:center; border-radius:12px; font-weight:bold; }
-#daysTitle { text-align:center; font-weight:bold; margin-bottom:8px; color: var(--text); font-size:14px; }
+.footer-note { text-align:center; margin-top:20px; font-weight:bold; color: var(--accent); }
+#pointMsg { display:none; text-align:center; background: #a78bfa; color:#fff; padding:10px; border-radius:12px; font-weight:bold; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -61,9 +60,8 @@ tr:nth-child(odd) td { background:#ede9fe; }
 </section>
 
 <section class="panel">
-<h2>Dias para concluir</h2>
-<div id="daysTitle">D &nbsp; S &nbsp; T &nbsp; Q &nbsp; Q &nbsp; S &nbsp; S</div>
-<div class="day-container" id="daysContainer"></div>
+<h2>Progresso da Semana</h2>
+<div class="progress-bar" id="progressBar"></div>
 </section>
 
 <section class="panel">
@@ -79,18 +77,13 @@ tr:nth-child(odd) td { background:#ede9fe; }
 <h2>🎁 Tabela de Recompensas</h2>
 <table id="rewardTable">
 <tr><th>Pontos</th><th>Recompensa</th><th>Ação</th></tr>
-<tr><td>10</td><td>Dinheiro para comprar salgado</td><td><button class="btn ok small">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
+<tr><td>10</td><td>Dinheiro salgado</td><td><button class="btn ok small">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
 <tr><td>40</td><td>R$10</td><td><button class="btn ok small">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
 <tr><td>50</td><td>Ox Burguer</td><td><button class="btn ok small">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
 </table>
-<form id="addRewardForm" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
-<input id="rewardPoints" type="number" placeholder="Pontos" required />
-<input id="rewardDesc" type="text" placeholder="Descrição" required />
-<button class="btn ok" type="submit">+ Adicionar recompensa</button>
-</form>
 </section>
 
-<div class="footer-note">Complete suas tarefas e ganhe um prêmio! 🎉</div>
+<div class="footer-note">Complete todas as tarefas da semana e ganhe um prêmio! 🎉</div>
 </div>
 
 <script>
@@ -100,67 +93,85 @@ const daysOfWeek = ['D','S','T','Q','Q','S','S'];
 
 function defaultTasks(){
   return [
-    { id: uid(), title:'🏫 Chegar na escola', time:'07:20', done:[], weeklyPoints:0 },
-    { id: uid(), title:'🏫 Saída da escola', time:'12:10', done:[], weeklyPoints:0 },
-    { id: uid(), title:'🏠 Chegar em casa', time:'13:15', done:[], weeklyPoints:0 },
-    { id: uid(), title:'🍽️ Almoço', time:'13:19', done:[], weeklyPoints:0 },
-    { id: uid(), title:'🧼 Lavar louça', time:'13:40', done:[], weeklyPoints:0 },
-    { id: uid(), title:'🍲 Fazer jantar (Segunda e Terça)', time:'14:00', done:[], weeklyPoints:10 },
-    { id: uid(), title:'🎬 Postar vídeo no YouTube (Quinta)', time:'11:00', done:[], weeklyPoints:0 }
+    { id: uid(), title:'🏫 Chegar na escola', time:'07:20', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🏫 Saída da escola', time:'12:10', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🏠 Chegar em casa', time:'13:15', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🍽️ Almoço', time:'13:19', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🧼 Lavar louça', time:'13:40', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🍲 Fazer jantar (Segunda e Terça)', time:'14:00', doneDays:[], weeklyPoints:10 },
+    { id: uid(), title:'🎬 Postar vídeo no YouTube (Quinta)', time:'11:00', doneDays:[], weeklyPoints:0 }
   ];
 }
 
-let state = JSON.parse(localStorage.getItem('agenda-v2')) || { tasks: defaultTasks(), points:0, redeemed:[], weekStart: new Date().getTime() };
+let state = JSON.parse(localStorage.getItem('agenda-progress')) || { tasks: defaultTasks(), points:0, weekStart: new Date().getTime() };
 
-function getWeekNumber(d){
-  d = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const dayNum = d.getDay() || 7;
-  d.setDate(d.getDate() + 4 - dayNum);
-  const yearStart = new Date(d.getFullYear(),0,1);
-  return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+function save(){ localStorage.setItem('agenda-progress', JSON.stringify(state)); }
+function showPointMessage(){ const msg = $('#pointMsg'); msg.style.display='block'; setTimeout(()=>{ msg.style.display='none'; },2000); }
+
+function checkWeekReset(){
+    const now = new Date();
+    const lastWeek = new Date(state.weekStart);
+    const weekDiff = Math.floor((now - lastWeek)/(1000*60*60*24*7));
+    if(weekDiff>=1){
+        state.tasks.forEach(t=>t.doneDays=[]);
+        state.weekStart = now.getTime();
+        save();
+    }
 }
 
-function startNewWeek(){
-  const now = new Date();
-  if(getWeekNumber(now) !== getWeekNumber(new Date(state.weekStart))){
-    state.tasks.forEach(t=> t.done=[]);
-    state.weekStart = now.getTime();
-    save();
-  }
-}
-
-function save(){ localStorage.setItem('agenda-v2', JSON.stringify(state)); }
-
-function showPointMessage(){
-  const msg = $('#pointMsg');
-  msg.style.display='block';
-  setTimeout(()=>{ msg.style.display='none'; },2000);
+function updateProgressBar(){
+    const bar = $('#progressBar'); bar.innerHTML='';
+    for(let i=0;i<7;i++){
+        const dayBlock = document.createElement('div');
+        dayBlock.innerText = daysOfWeek[i];
+        if(state.tasks.every(t => t.doneDays.includes(i))){
+            dayBlock.classList.add('done');
+        }
+        bar.append(dayBlock);
+    }
 }
 
 function render(){
-  startNewWeek();
-  $('#points').innerText = state.points;
-  const list = $('#taskList'); list.innerHTML='';
-  if(state.tasks.length===0){ $('#emptyState').style.display='block'; }else{ $('#emptyState').style.display='none'; }
+    checkWeekReset();
+    const today = new Date().getDay();
+    const list = $('#taskList'); list.innerHTML='';
+    if(state.tasks.length===0){ $('#emptyState').style.display='block'; } else { $('#emptyState').style.display='none'; }
 
-  state.tasks.forEach(t=>{
-    const li=document.createElement('li'); li.className='task';
-    const topDiv=document.createElement('div'); topDiv.style.display='flex'; topDiv.style.alignItems='center';
-    const time=document.createElement('div'); time.className='time'; time.innerText=t.time||'--:--';
-    const title=document.createElement('div'); title.innerHTML=t.title;
-    if(t.weeklyPoints){ const star=document.createElement('span'); star.className='extra'; star.innerHTML='⭐+'+t.weeklyPoints; title.appendChild(star); }
-    topDiv.append(time,title);
+    state.tasks.forEach(t=>{
+        const li=document.createElement('li'); li.className='task';
+        const topDiv=document.createElement('div'); topDiv.style.display='flex'; topDiv.style.alignItems='center';
+        const time=document.createElement('div'); time.className='time'; time.innerText=t.time||'--:--';
+        const title=document.createElement('div'); title.innerText=t.title;
+        if(t.weeklyPoints){ const star=document.createElement('span'); star.className='extra'; star.innerHTML='⭐+'+t.weeklyPoints; title.appendChild(star); }
+        if(t.doneDays.includes(today)){ li.classList.add('done'); }
+        topDiv.append(time,title);
 
-    const buttonsDiv=document.createElement('div'); buttonsDiv.style.marginTop='6px';
-    const btnDone=document.createElement('button'); btnDone.className='btn ok small'; btnDone.innerText='Concluído';
-    btnDone.onclick=()=>{ if(!t.done.includes(7)){ t.done.push(7); if(t.weeklyPoints) { state.points+=t.weeklyPoints; showPointMessage(); } save(); render(); } };
-    const btnDel=document.createElement('button'); btnDel.className='btn danger small'; btnDel.innerText='Excluir';
-    btnDel.onclick=()=>{ state.tasks = state.tasks.filter(x=>x.id!==t.id); save(); render(); };
-    buttonsDiv.append(btnDone, btnDel);
+        const buttonsDiv=document.createElement('div'); buttonsDiv.style.marginTop='6px';
+        const btnDone=document.createElement('button'); btnDone.className='btn ok small'; btnDone.innerText='Concluído';
+        btnDone.onclick = () => {
+            if(!t.doneDays.includes(today)){
+                t.doneDays.push(today);
+                if(t.weeklyPoints) state.points += t.weeklyPoints;
+                save(); render();
+            }
+        };
+        const btnDel=document.createElement('button'); btnDel.className='btn danger small'; btnDel.innerText='Excluir';
+        btnDel.onclick = () => { state.tasks = state.tasks.filter(x=>x.id!==t.id); save(); render(); };
+        buttonsDiv.append(btnDone, btnDel);
+        li.append(topDiv, buttonsDiv);
+        list.appendChild(li);
+    });
 
-    li.append(topDiv, buttonsDiv);
-    list.appendChild(li);
-  });
+    updateProgressBar();
+
+    // verifica se toda a semana está verde
+    if(state.tasks.every(t=>t.doneDays.length===7)){
+        state.points +=10;
+        state.tasks.forEach(t=>t.doneDays=[]); // reset semanal
+        save(); showPointMessage(); render();
+    }
+
+    $('#points').innerText = state.points;
 }
 
 render();
