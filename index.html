@@ -30,12 +30,10 @@ ul.tasks { list-style:none; padding:0; margin:0; display:flex; flex-direction:co
 .task.done { opacity:0.6; text-decoration:line-through; transform: scale(1.02); }
 .time { display:inline-block; background:#e0c7ff; padding:4px 8px; border-radius:6px; margin-right:8px; font-size:14px; }
 .extra { font-weight:bold; color:#a78bfa; margin-left:6px; }
-.day-container { display:flex; gap:4px; margin-top:6px; justify-content:center; }
-.day { width:24px; height:24px; border-radius:50%; background:#c4b5fd; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; transition: all 0.3s ease; }
-.day.done { background:#6b21a8; transform: scale(1.2); }
 .progress-bar { display:flex; gap:4px; margin-top:6px; justify-content:center; }
 .progress-bar div { width:32px; height:32px; border-radius:6px; background:#c4b5fd; transition: all 0.3s ease; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; }
-.progress-bar div.done { background:#6b21a8; transform: scale(1.1); }
+.progress-bar div.done { background:#6b21a8; transform: scale(1.1); box-shadow: 0 0 10px #a78bfa; animation: glow 1s ease-in-out infinite alternate; }
+@keyframes glow { 0% { box-shadow:0 0 5px #a78bfa; } 100% { box-shadow:0 0 20px #d8b4fe; } }
 table { width:100%; border-collapse: separate; border-spacing:0; border-radius:12px; overflow:hidden; margin-top:10px; font-size:14px; }
 th, td { padding:8px; text-align:left; border:none; }
 th { background:#c4b5fd; color: var(--text); font-weight:bold; }
@@ -43,6 +41,7 @@ tr:nth-child(even) td { background:#e9d5ff; }
 tr:nth-child(odd) td { background:#ede9fe; }
 .footer-note { text-align:center; margin-top:20px; font-weight:bold; color: var(--accent); }
 #pointMsg { display:none; text-align:center; background: #a78bfa; color:#fff; padding:10px; border-radius:12px; font-weight:bold; margin-top:10px; }
+.resgatados { margin-top:10px; font-size:14px; font-weight:bold; color: var(--ok);}
 </style>
 </head>
 <body>
@@ -77,10 +76,11 @@ tr:nth-child(odd) td { background:#ede9fe; }
 <h2>🎁 Tabela de Recompensas</h2>
 <table id="rewardTable">
 <tr><th>Pontos</th><th>Recompensa</th><th>Ação</th></tr>
-<tr><td>10</td><td>Dinheiro salgado</td><td><button class="btn ok small">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
-<tr><td>40</td><td>R$10</td><td><button class="btn ok small">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
-<tr><td>50</td><td>Ox Burguer</td><td><button class="btn ok small">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
+<tr data-points="10"><td>10</td><td>Dinheiro salgado</td><td><button class="btn ok small resgatarBtn">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
+<tr data-points="40"><td>40</td><td>R$10</td><td><button class="btn ok small resgatarBtn">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
+<tr data-points="50"><td>50</td><td>Ox Burguer</td><td><button class="btn ok small resgatarBtn">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
 </table>
+<div class="resgatados">Itens resgatados: <span id="resgatadosList">Nenhum</span></div>
 </section>
 
 <div class="footer-note">Complete todas as tarefas da semana e ganhe um prêmio! 🎉</div>
@@ -88,6 +88,7 @@ tr:nth-child(odd) td { background:#ede9fe; }
 
 <script>
 const $ = (s)=>document.querySelector(s);
+const $$ = (s)=>document.querySelectorAll(s);
 const uid = ()=>Math.random().toString(36).slice(2,9);
 const daysOfWeek = ['D','S','T','Q','Q','S','S'];
 
@@ -99,13 +100,13 @@ function defaultTasks(){
     { id: uid(), title:'🍽️ Almoço', time:'13:19', doneDays:[], weeklyPoints:0 },
     { id: uid(), title:'🧼 Lavar louça', time:'13:40', doneDays:[], weeklyPoints:0 },
     { id: uid(), title:'🍲 Fazer jantar (Segunda e Terça)', time:'14:00', doneDays:[], weeklyPoints:10 },
-    { id: uid(), title:'🎬 Postar vídeo no YouTube (Quinta)', time:'11:00', doneDays:[], weeklyPoints:0 }
+    { id: uid(), title:'🎬 Postar vídeo no YouTube (Quinta)', doneDays:[], weeklyPoints:0 }
   ];
 }
 
-let state = JSON.parse(localStorage.getItem('agenda-progress')) || { tasks: defaultTasks(), points:0, weekStart: new Date().getTime() };
+let state = JSON.parse(localStorage.getItem('agenda-toggle')) || { tasks: defaultTasks(), points:0, weekStart: new Date().getTime(), resgatados: [] };
 
-function save(){ localStorage.setItem('agenda-progress', JSON.stringify(state)); }
+function save(){ localStorage.setItem('agenda-toggle', JSON.stringify(state)); }
 function showPointMessage(){ const msg = $('#pointMsg'); msg.style.display='block'; setTimeout(()=>{ msg.style.display='none'; },2000); }
 
 function checkWeekReset(){
@@ -131,7 +132,7 @@ function updateProgressBar(){
     }
 }
 
-function render(){
+function renderTasks(){
     checkWeekReset();
     const today = new Date().getDay();
     const list = $('#taskList'); list.innerHTML='';
@@ -149,32 +150,63 @@ function render(){
         const buttonsDiv=document.createElement('div'); buttonsDiv.style.marginTop='6px';
         const btnDone=document.createElement('button'); btnDone.className='btn ok small'; btnDone.innerText='Concluído';
         btnDone.onclick = () => {
-            if(!t.doneDays.includes(today)){
+            const idx = t.doneDays.indexOf(today);
+            if(idx === -1){
                 t.doneDays.push(today);
                 if(t.weeklyPoints) state.points += t.weeklyPoints;
-                save(); render();
+            } else {
+                t.doneDays.splice(idx,1);
+                if(t.weeklyPoints) state.points -= t.weeklyPoints;
             }
+            save(); renderTasks(); updateProgressBar(); updatePoints();
         };
         const btnDel=document.createElement('button'); btnDel.className='btn danger small'; btnDel.innerText='Excluir';
-        btnDel.onclick = () => { state.tasks = state.tasks.filter(x=>x.id!==t.id); save(); render(); };
+        btnDel.onclick = () => { state.tasks = state.tasks.filter(x=>x.id!==t.id); save(); renderTasks(); updateProgressBar(); };
         buttonsDiv.append(btnDone, btnDel);
         li.append(topDiv, buttonsDiv);
         list.appendChild(li);
     });
-
-    updateProgressBar();
-
-    // verifica se toda a semana está verde
-    if(state.tasks.every(t=>t.doneDays.length===7)){
-        state.points +=10;
-        state.tasks.forEach(t=>t.doneDays=[]); // reset semanal
-        save(); showPointMessage(); render();
-    }
-
-    $('#points').innerText = state.points;
 }
 
-render();
+function updateRewards(){
+    const resList = $('#resgatadosList');
+    if(state.resgatados.length===0) resList.innerText='Nenhum';
+    else resList.innerText = state.resgatados.join(', ');
+}
+
+function updatePoints(){ $('#points').innerText = state.points; }
+
+function setupRewards(){
+    $$('.resgatarBtn').forEach(btn=>{
+        btn.onclick = function(){
+            const tr = btn.closest('tr');
+            const points = parseInt(tr.dataset.points);
+            const reward = tr.children[1].innerText;
+            if(state.points>=points && !state.resgatados.includes(reward)){
+                state.points -= points;
+                state.resgatados.push(reward);
+                btn.innerText='Resgatado'; btn.disabled=true;
+                save(); updatePoints(); updateRewards();
+            } else {
+                alert('Não tem pontos suficientes ou já resgatou!');
+            }
+        }
+    });
+}
+
+// Inicialização
+document.getElementById('taskForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const title = $('#title').value.trim();
+    const time = $('#time').value;
+    if(title){
+        state.tasks.push({ id:uid(), title, time, doneDays:[], weeklyPoints:0 });
+        $('#title').value=''; $('#time').value='';
+        save(); renderTasks(); updateProgressBar();
+    }
+});
+
+renderTasks(); updateProgressBar(); setupRewards(); updatePoints(); updateRewards();
 </script>
 </body>
 </html>
