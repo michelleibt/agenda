@@ -71,6 +71,8 @@
       <h2>🎁 Tabela de Recompensas</h2>
       <table id="rewardTable">
         <tr><th>Pontos</th><th>Recompensa</th><th>Ação</th></tr>
+        <tr><td>100</td><td>R$10</td><td>Resgatado</td></tr>
+        <tr><td>200</td><td>Dinheiro para comprar salgado depois da escola</td><td>Resgatado</td></tr>
       </table>
       <form id="addRewardForm" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
         <input id="rewardPoints" type="number" placeholder="Pontos" required />
@@ -91,30 +93,16 @@
   <script>
     const $ = (s)=>document.querySelector(s);
     const uid = ()=>Math.random().toString(36).slice(2,9);
-    let rewards = [];
 
-    function load(){ return JSON.parse(localStorage.getItem('agenda-v2')) || null; }
-    function save(data){ localStorage.setItem('agenda-v2', JSON.stringify(data)); }
+    let state = JSON.parse(localStorage.getItem('agenda-v2')) || { tasks: [], points: 0, redeemed: [] };
 
-    function defaultTasks(){
-      return [
-        { id: uid(), title:'🏫 Chegar na escola', time:'07:20', done:false },
-        { id: uid(), title:'🏫 Saída da escola', time:'12:10', done:false },
-        { id: uid(), title:'🏠 Chegar em casa', time:'13:15', done:false },
-        { id: uid(), title:'🍽️ Almoço', time:'13:19', done:false },
-        { id: uid(), title:'🧼 Lavar louça', time:'13:40', done:false },
-        { id: uid(), title:'🍲 Fazer jantar (Todas quintas e terças)', time:'14:00', done:false, days:[2,4], weeklyPoints:10 },
-        { id: uid(), title:'🎬 Postar vídeo no YouTube (Todas quintas-feiras)', time:'11:00', done:false, days:[4] }
-      ];
-    }
-
-    let state = load() || { tasks: defaultTasks(), points: 0, week:0, redeemed: [] };
-    save(state);
+    function save(){ localStorage.setItem('agenda-v2', JSON.stringify(state)); }
 
     function render(){
       $('#points').innerText = state.points;
       const list = $('#taskList');
       list.innerHTML = '';
+      if(state.tasks.length===0){ $('#emptyState').style.display='block'; }else{ $('#emptyState').style.display='none'; }
       state.tasks.forEach(t=>{
         const li=document.createElement('li');
         li.className='task'+(t.done?' done':'');
@@ -125,8 +113,8 @@
         if(t.done){ const doneStar=document.createElement('span'); doneStar.className='star'; doneStar.innerText='★'; title.appendChild(doneStar); }
         left.append(time,title);
         const actions=document.createElement('div');
-        const doneBtn=document.createElement('button'); doneBtn.className='btn small ok'; doneBtn.innerText=t.done?'✔':'Concluir'; doneBtn.onclick=()=>{ t.done=!t.done; save(state); render(); };
-        const delBtn=document.createElement('button'); delBtn.className='btn small danger'; delBtn.innerText='Excluir'; delBtn.onclick=()=>{ state.tasks=state.tasks.filter(x=>x.id!==t.id); save(state); render(); };
+        const doneBtn=document.createElement('button'); doneBtn.className='btn small ok'; doneBtn.innerText=t.done?'✔':'Concluir'; doneBtn.onclick=()=>{ t.done=!t.done; save(); render(); };
+        const delBtn=document.createElement('button'); delBtn.className='btn small danger'; delBtn.innerText='Excluir'; delBtn.onclick=()=>{ state.tasks=state.tasks.filter(x=>x.id!==t.id); save(); render(); };
         actions.append(doneBtn, delBtn);
         li.append(left,actions);
         list.appendChild(li);
