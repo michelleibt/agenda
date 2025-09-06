@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agenda Interativa</title>
+  <style>
+    :root {
+      --bg: #f3e8ff;
+      --panel: #e9d5ff;
+      --muted: #7c3aed;
+      --text: #4c1d95;
+      --accent: #a78bfa;
+      --ok: #6b21a8;
+      --danger: #9333ea;
+      --card: #ede9fe;
+      --radius: 18px;
+    }
+    body { margin:0; font-family: 'Comic Sans MS', cursive, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 980px; margin:24px auto; padding:0 16px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px }
+    h1 { font-size:28px; margin:0 }
+    .subtitle { color: var(--muted); font-size:14px; }
+    .btn { cursor:pointer; border:none; padding:6px 10px; border-radius:12px; font-weight:bold; transition: transform .2s; }
+    .btn.ok { background:var(--accent); color:#fff; }
+    .btn.danger { background:#9333ea; color:#fff; }
+    .btn.small { font-size:13px; }
+    .btn.resgatado { background: #c4b5fd; color: #4c1d95; cursor: default; transform: scale(1); transition: transform 0.3s; }
+    .btn.resgatado.animate { transform: scale(1.3); }
+    .btn:hover { transform: scale(1.05); }
+    .panel { background: var(--panel); border-radius: var(--radius); padding:16px; margin-bottom: 20px; box-shadow: 2px 2px 12px rgba(0,0,0,0.2); transition: transform .2s; }
+    .panel:hover { transform: translateY(-4px); }
+    ul.tasks { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px }
+    .task { display:flex; align-items:center; justify-content:space-between; background:var(--card); padding:10px; border-radius:12px; transition: background .3s, transform .2s; }
+    .task:hover { background:#e0c7ff; transform: translateX(4px); }
+    .task.done { opacity:.6; text-decoration: line-through; }
+    .time { background:#e0c7ff; padding:4px 8px; border-radius:6px; margin-right:8px; }
+    .points { font-size:14px; margin-left:10px; color: var(--accent); font-weight:bold; }
+    .extra { color: #a78bfa; margin-left:6px; font-weight:bold; }
+    table { width:100%; border-collapse: separate; border-spacing: 0; border-radius:12px; overflow:hidden; margin-top:10px; }
+    th, td { border:none; padding:10px; text-align:left; transition: background .3s; }
+    th { background:#c4b5fd; color:#4c1d95; font-weight:bold }
+    tr:nth-child(even) td { background:#e9d5ff; }
+    tr:nth-child(odd) td { background:#ede9fe; }
+    tr:hover td { background:#d8b4fe; }
+    #rewardMsg { background:var(--accent); color:white; padding:12px; border-radius:12px; margin-top:12px; display:none; font-weight:bold; text-align:center; animation-duration:1s; }
+    @keyframes popup {
+      0% { transform: scale(0); opacity:0; }
+      50% { transform: scale(1.2); opacity:1; }
+      100% { transform: scale(1); opacity:1; }
+    }
+    .footer-note { text-align:center; margin-top:20px; color: var(--muted); font-weight:bold; font-size:16px; }
+    .icon { margin-right:6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🗓️ Agenda Interativa</h1>
+      <div class="points">⭐ Pontos: <span id="points">0</span></div>
+    </header>
+
+    <section class="panel">
+      <h2>Tarefas</h2>
+      <ul class="tasks" id="taskList"></ul>
+      <div id="emptyState" style="display:none">Nenhuma tarefa.</div>
+    </section>
+
+    <section class="panel">
+      <h2>Adicionar tarefa</h2>
+      <form id="taskForm">
+        <input id="title" type="text" placeholder="Título" required />
+        <input id="time" type="time" />
+        <button class="btn ok" type="submit">+ Adicionar</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>🎁 Tabela de Recompensas</h2>
+      <table id="rewardTable">
+        <tr><th>Pontos</th><th>Recompensa</th><th>Ação</th></tr>
+      </table>
+      <form id="addRewardForm" style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+        <input id="rewardPoints" type="number" placeholder="Pontos" required />
+        <input id="rewardDesc" type="text" placeholder="Descrição" required />
+        <button class="btn ok" type="submit">+ Adicionar recompensa</button>
+      </form>
+      <div id="rewardMsg"></div>
+    </section>
+
+    <section class="panel">
+      <h2>📊 Resumo Semanal</h2>
+      <ul id="weeklySummary"></ul>
+    </section>
+
+    <div class="footer-note">Complete suas tarefas e ganhe um prêmio! 🎉</div>
+  </div>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+    const uid = ()=>Math.random().toString(36).slice(2,9);
+
+    let rewards = [];
+
+    function load(){ return JSON.parse(localStorage.getItem('agenda-v2')) || null; }
+    function save(data){ localStorage.setItem('agenda-v2', JSON.stringify(data)); }
+
+    function defaultTasks(){
+      return [
+        { id: uid(), title:'🏫 Chegar na escola', time:'07:20', done:false },
+        { id: uid(), title:'🏫 Saída da escola', time:'12:10', done:false },
+        { id: uid(), title:'🏠 Chegar em casa', time:'13:15', done:false },
+        { id: uid(), title:'🍽️ Almoço', time:'13:19', done:false },
+        { id: uid(), title:'🧼 Lavar louça', time:'13:40', done:false },
+        { id: uid(), title:'🍲 Fazer jantar (Todas quintas e terças)', time:'14:00', done:false, days:[2,4], weeklyPoints:10 },
+        { id: uid(), title:'🎬 Postar vídeo no YouTube (Todas quintas-feiras)', time:'11:00', done:false, days:[4] }
+      ];
+    }
+
+    let state = load() || { tasks: defaultTasks(), points: 0, week: getWeek(), summary: [], unlocked: [], redeemed: [] };
+    save(state);
+
+    function getWeek(){ const now=new Date(); const onejan=new Date(now.getFullYear(),0,1); return Math.ceil((((now-onejan)/86400000)+onejan.getDay()+1)/7); }
+
+    function render(){
+      $('#points').innerText = state.points;
+      const list = $('#taskList');
+      list.innerHTML = '';
+      state.tasks.forEach(t => {
+        const li = document.createElement('li');
+        li.className = 'task' + (t.done?' done':'');
+        const left = document.createElement('div'); left.style.display='flex'; left.style.alignItems='center';
+        const time = document.createElement('div'); time.className='time'; time.innerText = t.time||'--:--';
+        const title = document.createElement('div'); title.innerHTML = t.title;
+        if(t.weeklyPoints){ const star = document.createElement('span'); star.className='extra'; star.innerText='⭐+'+t.weeklyPoints; title.appendChild(star); }
+        left.append(time,title);
+        const actions = document.createElement('div');
+        const doneBtn = document.createElement('button'); doneBtn.className='btn small ok'; doneBtn.innerText=t.done?'✔':'Concluir'; doneBtn.onclick = ()=>{ t.done=!t.done; save(state); render(); };
+        const delBtn = document.createElement('button'); delBtn.className='btn small danger'; delBtn.innerText='Excluir'; delBtn.onclick = ()=>{ state.tasks = state.tasks.filter(x=>x.id!==t.id); save(state); render(); };
+        actions.append(doneBtn, delBtn);
+        li.append(left, actions);
+        list.appendChild(li);
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>
