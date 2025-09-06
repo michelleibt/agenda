@@ -32,7 +32,8 @@ ul.tasks { list-style:none; padding:0; margin:0; display:flex; flex-direction:co
 .time { background:#e0c7ff; padding:4px 8px; border-radius:6px; margin-right:8px; font-size:14px; display:inline-block; }
 .extra { color: #a78bfa; margin-left:6px; font-weight:bold; }
 .star { color: gold; margin-left:4px; font-size:16px; }
-.day-container { display:flex; gap:4px; margin-top:6px; }
+task-buttons { margin-top:6px; display:flex; gap:6px; }
+day-container { display:flex; gap:4px; margin-top:6px; }
 .day { width:24px; height:24px; border-radius:50%; background:#c4b5fd; color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-bottom:4px; }
 .day.done { background:#6b21a8; }
 table { width:100%; border-collapse: separate; border-spacing: 0; border-radius:12px; overflow:hidden; margin-top:10px; font-size:14px; }
@@ -149,7 +150,15 @@ function render(){
     const title=document.createElement('div'); title.innerHTML=t.title;
     if(t.weeklyPoints){ const star=document.createElement('span'); star.className='extra'; star.innerHTML='⭐+'+t.weeklyPoints; title.appendChild(star); }
     topDiv.append(time,title);
-    li.append(topDiv);
+
+    const buttonsDiv=document.createElement('div'); buttonsDiv.style.marginTop='6px';
+    const btnDone=document.createElement('button'); btnDone.className='btn ok small'; btnDone.innerText='Concluído';
+    btnDone.onclick=()=>{ if(!t.done.includes(7)){ t.done.push(7); if(t.weeklyPoints) { state.points+=t.weeklyPoints; showPointMessage(); } save(); render(); } };
+    const btnDel=document.createElement('button'); btnDel.className='btn danger small'; btnDel.innerText='Excluir';
+    btnDel.onclick=()=>{ state.tasks = state.tasks.filter(x=>x.id!==t.id); save(); render(); };
+    buttonsDiv.append(btnDone, btnDel);
+
+    li.append(topDiv, buttonsDiv);
     list.appendChild(li);
   });
 }
