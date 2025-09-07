@@ -68,6 +68,8 @@ tr:nth-child(odd) td { background:#ede9fe; }
 <form id="taskForm" style="display:flex; flex-direction:column; gap:8px;">
 <input id="title" type="text" placeholder="Título" required />
 <input id="time" type="time" />
+<input id="pointsInput" type="number" placeholder="Pontos da tarefa" />
+<input id="daysInput" type="text" placeholder="Dias (0=Dom,1=Seg,...)" />
 <button class="btn ok" type="submit">+ Adicionar</button>
 </form>
 </section>
@@ -96,13 +98,13 @@ const daysIcons = ['D','S','T','Q','Q','S','S'];
 
 function defaultTasks(){
   return [
-    { id: uid(), title:'🏫 Chegar na escola', time:'07:20', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🏫 Saída da escola', time:'12:10', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🏠 Chegar em casa', time:'13:15', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🍽️ Almoço', time:'13:19', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🧼 Lavar louça', time:'13:40', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🍲 Fazer jantar (Segunda e Terça)', time:'14:00', doneDays:[], weeklyPoints:10 },
-    { id: uid(), title:'🎬 Postar vídeo no YouTube (Quinta)', doneDays:[], weeklyPoints:0 }
+    { id: uid(), title:'🏫 Chegar na escola', time:'07:20', doneDays:[], weeklyPoints:0, days:[1,2,3,4,5] },
+    { id: uid(), title:'🏫 Saída da escola', time:'12:10', doneDays:[], weeklyPoints:0, days:[1,2,3,4,5] },
+    { id: uid(), title:'🏠 Chegar em casa', time:'13:15', doneDays:[], weeklyPoints:0, days:[1,2,3,4,5] },
+    { id: uid(), title:'🍽️ Almoço', time:'13:19', doneDays:[], weeklyPoints:0, days:[1,2,3,4,5,6,0] },
+    { id: uid(), title:'🧼 Lavar louça', time:'13:40', doneDays:[], weeklyPoints:0, days:[1,2,3,4,5,6,0] },
+    { id: uid(), title:'🍲 Fazer jantar', time:'14:00', doneDays:[], weeklyPoints:1, days:[1,2] },
+    { id: uid(), title:'🎬 Postar vídeo no YouTube', time:'', doneDays:[], weeklyPoints:0, days:[4] }
   ];
 }
 
@@ -117,6 +119,8 @@ function checkWeekReset(){
     const weekDiff = Math.floor((now - lastWeek)/(1000*60*60*24*7));
     if(weekDiff>=1){
         state.tasks.forEach(t=>t.doneDays=[]);
+        state.points = 0;
+        state.resgatados = [];
         state.weekStart = now.getTime();
         save();
     }
@@ -145,17 +149,27 @@ function renderTasks(){
         const topDiv=document.createElement('div'); topDiv.style.display='flex'; topDiv.style.alignItems='center';
         const time=document.createElement('div'); time.className='time'; time.innerText=t.time||'--:--';
         const title=document.createElement('div'); title.innerText=t.title;
-        if(t.weeklyPoints){ const star=document.createElement('span'); star.className='extra'; star.innerHTML='⭐+'+t.weeklyPoints; title.appendChild(star); }
+        if(t.weeklyPoints && t.days.includes(today)){ 
+            const star=document.createElement('span'); star.className='extra'; star.innerHTML='⭐+'+t.weeklyPoints; 
+            title.appendChild(star); 
+        }
         if(t.doneDays.includes(today)){ li.classList.add('done'); }
         topDiv.append(time,title);
 
         const buttonsDiv=document.createElement('div'); buttonsDiv.style.marginTop='6px';
         const btnDone=document.createElement('button'); btnDone.className='btn ok small'; btnDone.innerText='Concluído';
         btnDone.onclick = () => {
+            if(!t.days.includes(today)){
+                alert('Essa tarefa não é para hoje!');
+                return;
+            }
             const idx = t.doneDays.indexOf(today);
             if(idx === -1){
                 t.doneDays.push(today);
-                if(t.weeklyPoints) state.points += t.weeklyPoints;
+                if(t.weeklyPoints) {
+                    state.points += t.weeklyPoints;
+                    showPointMessage();
+                }
             } else {
                 t.doneDays.splice(idx,1);
                 if(t.weeklyPoints) state.points -= t.weeklyPoints;
@@ -201,9 +215,11 @@ document.getElementById('taskForm').addEventListener('submit', (e)=>{
     e.preventDefault();
     const title = $('#title').value.trim();
     const time = $('#time').value;
+    const points = parseInt($('#pointsInput').value) || 0;
+    const days = $('#daysInput').value.split(',').map(n=>parseInt(n.trim())).filter(n=>!isNaN(n));
     if(title){
-        state.tasks.push({ id:uid(), title, time, doneDays:[], weeklyPoints:0 });
-        $('#title').value=''; $('#time').value='';
+        state.tasks.push({ id:uid(), title, time, doneDays:[], weeklyPoints: points, days });
+        $('#title').value=''; $('#time').value=''; $('#pointsInput').value=''; $('#daysInput').value='';
         save(); renderTasks(); updateProgressBar();
     }
 });
