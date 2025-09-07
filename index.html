@@ -115,6 +115,7 @@ function defaultTasks(){
   ];
 }
 
+// Carrega o estado, garante fallback
 let state = JSON.parse(localStorage.getItem('agenda-toggle')) || { tasks: defaultTasks(), points:0, weekStart: new Date().getTime(), resgatados: [] };
 
 function save(){ localStorage.setItem('agenda-toggle', JSON.stringify(state)); }
@@ -147,9 +148,11 @@ function renderTasks(){
     checkWeekReset();
     const today = new Date().getDay();
     const list = $('#taskList'); list.innerHTML='';
-    $('#emptyState').style.display = state.tasks.length===0 ? 'block' : 'none';
+
+    if(state.tasks.length===0) state.tasks = defaultTasks();
 
     state.tasks.forEach(t=>{
+        if(!t.id) t.id = uid();
         const li=document.createElement('li'); li.className='task';
         const topDiv=document.createElement('div'); topDiv.style.display='flex'; topDiv.style.alignItems='center';
         const time=document.createElement('div'); time.className='time'; time.innerText=t.time||'--:--';
@@ -181,6 +184,8 @@ function renderTasks(){
         li.append(topDiv,buttonsDiv);
         list.appendChild(li);
     });
+
+    $('#emptyState').style.display = list.children.length === 0 ? 'block' : 'none';
 }
 
 function checkWeekPoints(){
