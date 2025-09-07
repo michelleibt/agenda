@@ -14,44 +14,33 @@
   --danger: #9333ea;
   --card: #ede9fe;
   --radius: 18px;
-  --hover-shadow: rgba(0,0,0,0.2);
 }
-* { box-sizing: border-box; }
 body { font-family:'Comic Sans MS', cursive, sans-serif; background: var(--bg); margin:0; color: var(--text); }
 .wrap { max-width:480px; margin:24px auto; padding:0 12px; }
 header { display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:18px; }
 h1 { margin:0; font-size:24px; text-align:center; }
 .points { font-weight:bold; font-size:16px; color: var(--accent); }
-
-.btn { border:none; padding:6px 10px; border-radius:12px; cursor:pointer; font-weight:bold; transition: all 0.2s ease; }
-.btn:hover:not(:disabled) { transform: scale(1.05); }
-.btn:disabled { opacity:0.6; cursor:not-allowed; }
-
+.btn { border:none; padding:6px 10px; border-radius:12px; cursor:pointer; font-weight:bold; }
 .btn.ok { background: var(--accent); color:#fff; }
 .btn.danger { background: var(--danger); color:#fff; }
 .btn.small { font-size:13px; }
-
-.panel { background: var(--panel); border-radius: var(--radius); padding:16px; margin-bottom:20px; box-shadow:2px2px12px var(--hover-shadow); }
+.panel { background: var(--panel); border-radius: var(--radius); padding:16px; margin-bottom:20px; box-shadow:2px2px12px rgba(0,0,0,0.2); }
 ul.tasks { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
 .task { display:flex; flex-direction:column; background: var(--card); padding:10px; border-radius:12px; transition: all 0.3s ease; }
 .task.done { opacity:0.6; text-decoration:line-through; transform: scale(1.02); }
 .time { display:inline-block; background:#e0c7ff; padding:4px 8px; border-radius:6px; margin-right:8px; font-size:14px; }
 .extra { font-weight:bold; color:#a78bfa; margin-left:6px; }
-.restricted { font-size:12px; color: var(--danger); font-weight:bold; margin-left:5px; }
-
 .progress-bar { display:flex; gap:4px; margin-top:6px; justify-content:center; }
 .progress-bar div { width:32px; height:32px; border-radius:6px; background:#c4b5fd; transition: all 0.3s ease; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:18px; }
-.progress-bar div.done { background: var(--ok); transform: scale(1.1); box-shadow: 0 0 10px var(--accent); animation: glow 1s ease-in-out infinite alternate; }
-@keyframes glow { 0% { box-shadow:0 0 5px var(--accent); } 100% { box-shadow:0 0 20px #d8b4fe; } }
-
+.progress-bar div.done { background:#6b21a8; transform: scale(1.1); box-shadow: 0 0 10px #a78bfa; animation: glow 1s ease-in-out infinite alternate; }
+@keyframes glow { 0% { box-shadow:0 0 5px #a78bfa; } 100% { box-shadow:0 0 20px #d8b4fe; } }
 table { width:100%; border-collapse: separate; border-spacing:0; border-radius:12px; overflow:hidden; margin-top:10px; font-size:14px; }
 th, td { padding:8px; text-align:left; border:none; }
 th { background:#c4b5fd; color: var(--text); font-weight:bold; }
 tr:nth-child(even) td { background:#e9d5ff; }
 tr:nth-child(odd) td { background:#ede9fe; }
-
 .footer-note { text-align:center; margin-top:20px; font-weight:bold; color: var(--accent); }
-#pointMsg { display:none; text-align:center; background: var(--accent); color:#fff; padding:10px; border-radius:12px; font-weight:bold; margin-top:10px; }
+#pointMsg { display:none; text-align:center; background: #a78bfa; color:#fff; padding:10px; border-radius:12px; font-weight:bold; margin-top:10px; }
 .resgatados { margin-top:10px; font-size:14px; font-weight:bold; color: var(--ok);}
 </style>
 </head>
@@ -101,21 +90,22 @@ tr:nth-child(odd) td { background:#ede9fe; }
 const $ = (s)=>document.querySelector(s);
 const $$ = (s)=>document.querySelectorAll(s);
 const uid = ()=>Math.random().toString(36).slice(2,9);
-const daysIcons = ['D','S','T','Q','Q','S','S'];
+
+// Ícones da semana
+const daysIcons = ['D','S','T','Q','Q','S','S🛌'];
 
 function defaultTasks(){
   return [
-    { id: uid(), title:'🏫 Chegar na escola', time:'07:20', allowedDays:[0,1,2,3,4,5,6], weeklyPoints:0, doneDays:[] },
-    { id: uid(), title:'🏫 Saída da escola', time:'12:10', allowedDays:[0,1,2,3,4,5,6], weeklyPoints:0, doneDays:[] },
-    { id: uid(), title:'🏠 Chegar em casa', time:'13:15', allowedDays:[0,1,2,3,4,5,6], weeklyPoints:0, doneDays:[] },
-    { id: uid(), title:'🍽️ Almoço', time:'13:19', allowedDays:[0,1,2,3,4,5,6], weeklyPoints:0, doneDays:[] },
-    { id: uid(), title:'🧼 Lavar louça', time:'13:40', allowedDays:[0,1,2,3,4,5,6], weeklyPoints:0, doneDays:[] },
-    { id: uid(), title:'🍲 Fazer jantar', time:'14:00', allowedDays:[1,2], weeklyPoints:10, doneDays:[] },
-    { id: uid(), title:'🎬 Postar vídeo no YouTube', time:'11:00', allowedDays:[4], weeklyPoints:0, doneDays:[] }
+    { id: uid(), title:'🏫 Chegar na escola', time:'07:20', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🏫 Saída da escola', time:'12:10', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🏠 Chegar em casa', time:'13:15', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🍽️ Almoço', time:'13:19', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🧼 Lavar louça', time:'13:40', doneDays:[], weeklyPoints:0 },
+    { id: uid(), title:'🍲 Fazer jantar (Segunda e Terça)', time:'14:00', doneDays:[], weeklyPoints:10 },
+    { id: uid(), title:'🎬 Postar vídeo no YouTube (Quinta)', doneDays:[], weeklyPoints:0 }
   ];
 }
 
-// Carrega o estado, garante fallback
 let state = JSON.parse(localStorage.getItem('agenda-toggle')) || { tasks: defaultTasks(), points:0, weekStart: new Date().getTime(), resgatados: [] };
 
 function save(){ localStorage.setItem('agenda-toggle', JSON.stringify(state)); }
@@ -137,7 +127,7 @@ function updateProgressBar(){
     for(let i=0;i<7;i++){
         const dayBlock = document.createElement('div');
         dayBlock.innerText = daysIcons[i];
-        if(state.tasks.every(t => t.allowedDays.includes(i) ? t.doneDays.includes(i) : true)){
+        if(state.tasks.every(t => t.doneDays.includes(i))){
             dayBlock.classList.add('done');
         }
         bar.append(dayBlock);
@@ -148,59 +138,42 @@ function renderTasks(){
     checkWeekReset();
     const today = new Date().getDay();
     const list = $('#taskList'); list.innerHTML='';
-
-    if(state.tasks.length===0) state.tasks = defaultTasks();
+    if(state.tasks.length===0){ $('#emptyState').style.display='block'; } else { $('#emptyState').style.display='none'; }
 
     state.tasks.forEach(t=>{
-        if(!t.id) t.id = uid();
         const li=document.createElement('li'); li.className='task';
         const topDiv=document.createElement('div'); topDiv.style.display='flex'; topDiv.style.alignItems='center';
         const time=document.createElement('div'); time.className='time'; time.innerText=t.time||'--:--';
         const title=document.createElement('div'); title.innerText=t.title;
-
         if(t.weeklyPoints){ const star=document.createElement('span'); star.className='extra'; star.innerHTML='⭐+'+t.weeklyPoints; title.appendChild(star); }
-        if(t.allowedDays.length<7){
-            const info = document.createElement('span'); info.className='restricted'; info.innerText='Dias: '+t.allowedDays.map(d=>daysIcons[d]).join(',');
-            title.appendChild(info);
-        }
-        if(t.doneDays.includes(today)) li.classList.add('done');
+        if(t.doneDays.includes(today)){ li.classList.add('done'); }
         topDiv.append(time,title);
 
         const buttonsDiv=document.createElement('div'); buttonsDiv.style.marginTop='6px';
         const btnDone=document.createElement('button'); btnDone.className='btn ok small'; btnDone.innerText='Concluído';
-        btnDone.onclick = ()=>{
-            if(!t.allowedDays.includes(today)){
-                alert('Essa tarefa não pode ser concluída hoje!');
-                return;
-            }
+        btnDone.onclick = () => {
             const idx = t.doneDays.indexOf(today);
-            idx===-1 ? t.doneDays.push(today) : t.doneDays.splice(idx,1);
-            save(); renderTasks(); updateProgressBar(); checkWeekPoints();
+            if(idx === -1){
+                t.doneDays.push(today);
+                if(t.weeklyPoints) state.points += t.weeklyPoints;
+            } else {
+                t.doneDays.splice(idx,1);
+                if(t.weeklyPoints) state.points -= t.weeklyPoints;
+            }
+            save(); renderTasks(); updateProgressBar(); updatePoints();
         };
         const btnDel=document.createElement('button'); btnDel.className='btn danger small'; btnDel.innerText='Excluir';
-        btnDel.onclick = ()=>{ state.tasks = state.tasks.filter(x=>x.id!==t.id); save(); renderTasks(); updateProgressBar(); };
+        btnDel.onclick = () => { state.tasks = state.tasks.filter(x=>x.id!==t.id); save(); renderTasks(); updateProgressBar(); };
         buttonsDiv.append(btnDone, btnDel);
-
-        li.append(topDiv,buttonsDiv);
+        li.append(topDiv, buttonsDiv);
         list.appendChild(li);
     });
-
-    $('#emptyState').style.display = list.children.length === 0 ? 'block' : 'none';
-}
-
-function checkWeekPoints(){
-    const allDone = state.tasks.every(t => t.allowedDays.every(d => t.doneDays.includes(d)));
-    if(allDone){
-        const totalPoints = state.tasks.reduce((acc,t)=>acc+t.weeklyPoints,0);
-        if(totalPoints>0){
-            state.points += totalPoints;
-            save(); updatePoints(); showPointMessage();
-        }
-    }
 }
 
 function updateRewards(){
-    $('#resgatadosList').innerText = state.resgatados.length ? state.resgatados.join(', ') : 'Nenhum';
+    const resList = $('#resgatadosList');
+    if(state.resgatados.length===0) resList.innerText='Nenhum';
+    else resList.innerText = state.resgatados.join(', ');
 }
 
 function updatePoints(){ $('#points').innerText = state.points; }
@@ -223,12 +196,13 @@ function setupRewards(){
     });
 }
 
-$('#taskForm').addEventListener('submit',(e)=>{
+// Inicialização
+document.getElementById('taskForm').addEventListener('submit', (e)=>{
     e.preventDefault();
     const title = $('#title').value.trim();
     const time = $('#time').value;
     if(title){
-        state.tasks.push({ id:uid(), title, time, allowedDays:[0,1,2,3,4,5,6], weeklyPoints:0, doneDays:[] });
+        state.tasks.push({ id:uid(), title, time, doneDays:[], weeklyPoints:0 });
         $('#title').value=''; $('#time').value='';
         save(); renderTasks(); updateProgressBar();
     }
