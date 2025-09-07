@@ -41,8 +41,7 @@ tr:nth-child(even) td { background:#e9d5ff; }
 tr:nth-child(odd) td { background:#ede9fe; }
 .footer-note { text-align:center; margin-top:20px; font-weight:bold; color: var(--accent); }
 #pointMsg { display:none; text-align:center; background: #a78bfa; color:#fff; padding:10px; border-radius:12px; font-weight:bold; margin-top:10px; }
-.resgatados { margin-top:10px; font-size:14px; font-weight:bold; color: var(--ok);}
-input[type="number"] { padding:6px; border-radius:8px; border:1px solid #ccc; width:100px; }
+.resgatados span { margin-right:6px; }
 @media (max-width: 360px) {
     .wrap { padding: 0 6px; }
     .btn { padding:4px 8px; font-size:12px; }
@@ -73,7 +72,6 @@ input[type="number"] { padding:6px; border-radius:8px; border:1px solid #ccc; wi
 <form id="taskForm" style="display:flex; flex-direction:column; gap:8px;">
 <input id="title" type="text" placeholder="Título" required />
 <input id="time" type="time" />
-<input id="weeklyPoints" type="number" placeholder="Pontos da tarefa" min="0" />
 <button class="btn ok" type="submit">+ Adicionar</button>
 </form>
 </section>
@@ -93,33 +91,26 @@ input[type="number"] { padding:6px; border-radius:8px; border:1px solid #ccc; wi
 </div>
 
 <script>
-const $ = (s)=>document.querySelector(s);
-const $$ = (s)=>document.querySelectorAll(s);
-const uid = ()=>Math.random().toString(36).slice(2,9);
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const uid = () => Math.random().toString(36).slice(2,9);
 const daysIcons = ['D','S','T','Q','Q','S','S'];
 
 function defaultTasks(){
   return [
-    { id: uid(), title:'🏫 Chegar na escola', time:'07:20', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🏫 Saída da escola', time:'12:10', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🏠 Chegar em casa', time:'13:15', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🍽️ Almoço', time:'13:19', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🧼 Lavar louça', time:'13:40', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🍲 Fazer jantar (Segunda e Terça)', time:'14:00', doneDays:[], weeklyPoints:0 }, // sem pontos
-    { id: uid(), title:'🎬 Postar vídeo no YouTube (Quinta)', doneDays:[], weeklyPoints:0 }
+    { id: uid(), title:'🏫 Chegar na escola', time:'07:20', doneDays:[], weeklyPoints:1 },
+    { id: uid(), title:'🏫 Saída da escola', time:'12:10', doneDays:[], weeklyPoints:1 },
+    { id: uid(), title:'🏠 Chegar em casa', time:'13:15', doneDays:[], weeklyPoints:1 },
+    { id: uid(), title:'🍽️ Almoço', time:'13:19', doneDays:[], weeklyPoints:1 },
+    { id: uid(), title:'🧼 Lavar louça', time:'13:40', doneDays:[], weeklyPoints:1 },
+    { id: uid(), title:'🍲 Fazer jantar', time:'14:00', doneDays:[], weeklyPoints:1 },
+    { id: uid(), title:'🎬 Postar vídeo no YouTube', doneDays:[], weeklyPoints:1 }
   ];
 }
 
 let state = JSON.parse(localStorage.getItem('agenda-toggle')) || { tasks: defaultTasks(), points:0, weekStart: new Date().getTime(), resgatados: [] };
-
 function save(){ localStorage.setItem('agenda-toggle', JSON.stringify(state)); }
-
-function showPointMessage(msgText){ 
-    const msg = $('#pointMsg'); 
-    msg.innerText = msgText;
-    msg.style.display='block'; 
-    setTimeout(()=>{ msg.style.display='none'; },2000); 
-}
+function showPointMessage(msg){ $('#pointMsg').innerText = msg; $('#pointMsg').style.display='block'; setTimeout(()=>{ $('#pointMsg').style.display='none'; },2000); }
 
 function checkWeekReset(){
     const now = new Date();
@@ -127,7 +118,7 @@ function checkWeekReset(){
     const weekDiff = Math.floor((now - lastWeek)/(1000*60*60*24*7));
     if(weekDiff>=1){
         state.tasks.forEach(t=>t.doneDays=[]);
-        state.points = 0; // Reset pontos semanais
+        state.points = 0;
         state.weekStart = now.getTime();
         save();
         showPointMessage('Nova semana! Pontos resetados.');
@@ -165,16 +156,8 @@ function renderTasks(){
         const btnDone=document.createElement('button'); btnDone.className='btn ok small'; btnDone.innerText='Concluído';
         btnDone.onclick = () => {
             const idx = t.doneDays.indexOf(today);
-            if(idx === -1){
-                t.doneDays.push(today);
-                if(t.weeklyPoints) {
-                    state.points += t.weeklyPoints;
-                    showPointMessage(`+${t.weeklyPoints} pontos!`);
-                }
-            } else {
-                t.doneDays.splice(idx,1);
-                if(t.weeklyPoints) state.points -= t.weeklyPoints;
-            }
+            if(idx === -1){ t.doneDays.push(today); state.points += t.weeklyPoints; showPointMessage(`+${t.weeklyPoints} pontos!`);}
+            else { t.doneDays.splice(idx,1); state.points -= t.weeklyPoints; }
             save(); renderTasks(); updateProgressBar(); updatePoints();
         };
         const btnDel=document.createElement('button'); btnDel.className='btn danger small'; btnDel.innerText='Excluir';
@@ -187,53 +170,62 @@ function renderTasks(){
 
 function updateRewards(){
     const resList = $('#resgatadosList');
-    if(state.resgatados.length===0) resList.innerText='Nenhum';
-    else resList.innerText = state.resgatados.join(', ');
+    resList.innerHTML='';
+    if(state.resgatados.length === 0){ resList.innerText='Nenhum'; }
+    else {
+        state.resgatados.forEach(item=>{
+            const span=document.createElement('span');
+            span.innerText = item;
+            span.style.background='#a78bfa';
+            span.style.color='#fff';
+            span.style.padding='2px 6px';
+            span.style.borderRadius='8px';
+            span.style.fontWeight='bold';
+            resList.appendChild(span);
+        });
+    }
 }
+
+document.addEventListener("click", function(e){
+    if(e.target.classList.contains("resgatarBtn")){
+        const tr = e.target.closest("tr");
+        const reward = tr.children[1].innerText;
+        const points = parseInt(tr.dataset.points);
+        if(state.points >= points && !state.resgatados.includes(reward)){
+            state.points -= points;
+            state.resgatados.push(reward);
+            e.target.innerText = "Resgatado";
+            e.target.disabled = true;
+            updateRewards(); 
+            updatePoints(); 
+            save();
+            showPointMessage(`Recompensa "${reward}" resgatada!`);
+        } else {
+            showPointMessage("Não tem pontos suficientes ou já resgatou!");
+        }
+    }
+    if(e.target.classList.contains("deleteRewardBtn")){
+        const tr = e.target.closest("tr");
+        const reward = tr.children[1].innerText;
+        state.resgatados = state.resgatados.filter(r => r !== reward);
+        tr.remove(); 
+        save(); 
+        updateRewards();
+        showPointMessage("Recompensa excluída!");
+    }
+});
 
 function updatePoints(){ $('#points').innerText = state.points; }
 
-function setupRewards(){
-    $$('.resgatarBtn').forEach(btn=>{
-        btn.onclick = function(){
-            const tr = btn.closest('tr');
-            const points = parseInt(tr.dataset.points);
-            const reward = tr.children[1].innerText;
-            if(state.points>=points && !state.resgatados.includes(reward)){
-                state.points -= points;
-                state.resgatados.push(reward);
-                btn.innerText='Resgatado'; btn.disabled=true;
-                save(); updatePoints(); updateRewards();
-                showPointMessage(`Recompensa "${reward}" resgatada!`);
-            } else {
-                showPointMessage('Não tem pontos suficientes ou já resgatou!');
-            }
-        }
-    });
-
-    $$('.deleteRewardBtn').forEach(btn=>{
-        btn.onclick = function(){
-            const tr = btn.closest('tr');
-            tr.remove();
-            showPointMessage('Recompensa excluída!');
-        }
-    });
-}
-
-// Inicialização
 document.getElementById('taskForm').addEventListener('submit', (e)=>{
     e.preventDefault();
     const title = $('#title').value.trim();
     const time = $('#time').value;
-    const points = parseInt($('#weeklyPoints').value) || 0;
-    if(title){
-        state.tasks.push({ id:uid(), title, time, doneDays:[], weeklyPoints:points });
-        $('#title').value=''; $('#time').value=''; $('#weeklyPoints').value='';
-        save(); renderTasks(); updateProgressBar();
-    }
+    const points = 1;
+    if(title){ state.tasks.push({ id:uid(), title, time, doneDays:[], weeklyPoints:points }); $('#title').value=''; $('#time').value=''; save(); renderTasks(); updateProgressBar(); }
 });
 
-renderTasks(); updateProgressBar(); setupRewards(); updatePoints(); updateRewards();
+renderTasks(); updateProgressBar(); updateRewards(); updatePoints();
 </script>
 </body>
 </html>
