@@ -42,6 +42,11 @@ tr:nth-child(odd) td { background:#ede9fe; }
 .footer-note { text-align:center; margin-top:20px; font-weight:bold; color: var(--accent); }
 #pointMsg { display:none; text-align:center; background: #a78bfa; color:#fff; padding:10px; border-radius:12px; font-weight:bold; margin-top:10px; }
 .resgatados { margin-top:10px; font-size:14px; font-weight:bold; color: var(--ok);}
+input[type="number"] { padding:6px; border-radius:8px; border:1px solid #ccc; width:100px; }
+@media (max-width: 360px) {
+    .wrap { padding: 0 6px; }
+    .btn { padding:4px 8px; font-size:12px; }
+}
 </style>
 </head>
 <body>
@@ -68,6 +73,7 @@ tr:nth-child(odd) td { background:#ede9fe; }
 <form id="taskForm" style="display:flex; flex-direction:column; gap:8px;">
 <input id="title" type="text" placeholder="Título" required />
 <input id="time" type="time" />
+<input id="weeklyPoints" type="number" placeholder="Pontos da tarefa" min="0" />
 <button class="btn ok" type="submit">+ Adicionar</button>
 </form>
 </section>
@@ -76,9 +82,9 @@ tr:nth-child(odd) td { background:#ede9fe; }
 <h2>🎁 Tabela de Recompensas</h2>
 <table id="rewardTable">
 <tr><th>Pontos</th><th>Recompensa</th><th>Ação</th></tr>
-<tr data-points="10"><td>10</td><td>Dinheiro salgado</td><td><button class="btn ok small resgatarBtn">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
-<tr data-points="40"><td>40</td><td>R$10</td><td><button class="btn ok small resgatarBtn">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
-<tr data-points="50"><td>50</td><td>Ox Burguer</td><td><button class="btn ok small resgatarBtn">Resgatar</button> <button class="btn danger small">Excluir</button></td></tr>
+<tr data-points="10"><td>10</td><td>Dinheiro salgado</td><td><button class="btn ok small resgatarBtn">Resgatar</button> <button class="btn danger small deleteRewardBtn">Excluir</button></td></tr>
+<tr data-points="40"><td>40</td><td>R$10</td><td><button class="btn ok small resgatarBtn">Resgatar</button> <button class="btn danger small deleteRewardBtn">Excluir</button></td></tr>
+<tr data-points="50"><td>50</td><td>Ox Burguer</td><td><button class="btn ok small resgatarBtn">Resgatar</button> <button class="btn danger small deleteRewardBtn">Excluir</button></td></tr>
 </table>
 <div class="resgatados">Itens resgatados: <span id="resgatadosList">Nenhum</span></div>
 </section>
@@ -90,8 +96,6 @@ tr:nth-child(odd) td { background:#ede9fe; }
 const $ = (s)=>document.querySelector(s);
 const $$ = (s)=>document.querySelectorAll(s);
 const uid = ()=>Math.random().toString(36).slice(2,9);
-
-// Ícones da semana
 const daysIcons = ['D','S','T','Q','Q','S','S'];
 
 function defaultTasks(){
@@ -101,7 +105,7 @@ function defaultTasks(){
     { id: uid(), title:'🏠 Chegar em casa', time:'13:15', doneDays:[], weeklyPoints:0 },
     { id: uid(), title:'🍽️ Almoço', time:'13:19', doneDays:[], weeklyPoints:0 },
     { id: uid(), title:'🧼 Lavar louça', time:'13:40', doneDays:[], weeklyPoints:0 },
-    { id: uid(), title:'🍲 Fazer jantar (Segunda e Terça)', time:'14:00', doneDays:[], weeklyPoints:10 },
+    { id: uid(), title:'🍲 Fazer jantar (Segunda e Terça)', time:'14:00', doneDays:[], weeklyPoints:0 }, // sem pontos
     { id: uid(), title:'🎬 Postar vídeo no YouTube (Quinta)', doneDays:[], weeklyPoints:0 }
   ];
 }
@@ -109,7 +113,13 @@ function defaultTasks(){
 let state = JSON.parse(localStorage.getItem('agenda-toggle')) || { tasks: defaultTasks(), points:0, weekStart: new Date().getTime(), resgatados: [] };
 
 function save(){ localStorage.setItem('agenda-toggle', JSON.stringify(state)); }
-function showPointMessage(){ const msg = $('#pointMsg'); msg.style.display='block'; setTimeout(()=>{ msg.style.display='none'; },2000); }
+
+function showPointMessage(msgText){ 
+    const msg = $('#pointMsg'); 
+    msg.innerText = msgText;
+    msg.style.display='block'; 
+    setTimeout(()=>{ msg.style.display='none'; },2000); 
+}
 
 function checkWeekReset(){
     const now = new Date();
@@ -117,8 +127,10 @@ function checkWeekReset(){
     const weekDiff = Math.floor((now - lastWeek)/(1000*60*60*24*7));
     if(weekDiff>=1){
         state.tasks.forEach(t=>t.doneDays=[]);
+        state.points = 0; // Reset pontos semanais
         state.weekStart = now.getTime();
         save();
+        showPointMessage('Nova semana! Pontos resetados.');
     }
 }
 
@@ -155,7 +167,10 @@ function renderTasks(){
             const idx = t.doneDays.indexOf(today);
             if(idx === -1){
                 t.doneDays.push(today);
-                if(t.weeklyPoints) state.points += t.weeklyPoints;
+                if(t.weeklyPoints) {
+                    state.points += t.weeklyPoints;
+                    showPointMessage(`+${t.weeklyPoints} pontos!`);
+                }
             } else {
                 t.doneDays.splice(idx,1);
                 if(t.weeklyPoints) state.points -= t.weeklyPoints;
@@ -189,9 +204,18 @@ function setupRewards(){
                 state.resgatados.push(reward);
                 btn.innerText='Resgatado'; btn.disabled=true;
                 save(); updatePoints(); updateRewards();
+                showPointMessage(`Recompensa "${reward}" resgatada!`);
             } else {
-                alert('Não tem pontos suficientes ou já resgatou!');
+                showPointMessage('Não tem pontos suficientes ou já resgatou!');
             }
+        }
+    });
+
+    $$('.deleteRewardBtn').forEach(btn=>{
+        btn.onclick = function(){
+            const tr = btn.closest('tr');
+            tr.remove();
+            showPointMessage('Recompensa excluída!');
         }
     });
 }
@@ -201,9 +225,10 @@ document.getElementById('taskForm').addEventListener('submit', (e)=>{
     e.preventDefault();
     const title = $('#title').value.trim();
     const time = $('#time').value;
+    const points = parseInt($('#weeklyPoints').value) || 0;
     if(title){
-        state.tasks.push({ id:uid(), title, time, doneDays:[], weeklyPoints:0 });
-        $('#title').value=''; $('#time').value='';
+        state.tasks.push({ id:uid(), title, time, doneDays:[], weeklyPoints:points });
+        $('#title').value=''; $('#time').value=''; $('#weeklyPoints').value='';
         save(); renderTasks(); updateProgressBar();
     }
 });
